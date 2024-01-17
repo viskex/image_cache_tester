@@ -36,6 +36,7 @@ classifiers = [
 ]
 dependencies = [
     "nbvalx[notebooks,unit_tests]",
+    "pillow",
     "pyvista[jupyter]"
 ]
 
@@ -59,6 +60,7 @@ lint = [
     "isort",
     "mypy",
     "ruff",
+    "types-Pillow",
     "yamllint"
 ]
 tests = [
