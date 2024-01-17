@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=62", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-cache-tester"
+version = "0.0.dev1"
+authors = [
+    {name = "Francesco Ballarin", email = "francesco.ballarin@unicatt.it"},
+]
+maintainers = [
+    {name = "Francesco Ballarin", email = "francesco.ballarin@unicatt.it"},
+]
+description = "Image cache testing for viskex"
+license = {file = "LICENSE"}
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+    "nbvalx[notebooks,unit_tests]",
+    "pyvista[jupyter]"
+]
+
+[project.urls]
+homepage = "https://viskex.github.io"
+repository = "https://github.com/viskex/image_cache_tester"
+issues = "https://github.com/viskex/image_cache_tester/issues"
+funding = "https://github.com/sponsors/francesco-ballarin"
+
+[project.optional-dependencies]
+backend_dolfinx = [
+    "fenics-dolfinx"
+]
+backend_firedrake = [
+    "firedrake"
+]
+docs = [
+    "sphinx"
+]
+lint = [
+    "isort",
+    "mypy",
+    "ruff",
+    "yamllint"
+]
+tests = [
+    "coverage[toml]",
+    "nbqa"
+]
+
+[tool.coverage.paths]
+source = ["image_cache_tester", "*/dist-packages/image_cache_tester", "*/site-packages/image_cache_tester"]
+
+[tool.isort]
+line_length = 120
+multi_line_output = 4
+order_by_type = false
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_unimported = true
+disallow_untyped_defs = true
+implicit_reexport = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+
+[tool.ruff]
+line-length = 120
+select = ["ANN", "D", "E", "F", "ICN", "N", "Q", "RUF", "W"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.ruff.pycodestyle]
+max-doc-length = 120
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.setuptools.package-data]
+viskex = ["py.typed"]
+
+[tool.setuptools.packages.find]
+namespaces = false

@@ -14,5 +14,54 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container: debian:testing
     steps:
+      - name: Install git
+        run: |
+          apt update -y -q
+          apt install -y -qq git
+      - name: Mark workspace as safe
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
       - uses: actions/checkout@v4
+        with:
+          set-safe-directory: false
+      - name: Install non-pip dependencies of the image cache tester library
+        run: |
+          export DEBIAN_FRONTEND="noninteractive"
+          apt install -y -qq python3-mpi4py python3-pip
+          rm /usr/lib/python3.*/EXTERNALLY-MANAGED
+      - name: Install the image cache tester library
+        run: |
+          python3 -m pip install .[docs,lint,tests]
+      - name: Clean build files
+        run: |
+          git clean -xdf
+      - name: Run ruff on python files
+        run: |
+          python3 -m ruff .
+      - name: Run isort on python files
+        run: |
+          python3 -m isort --check --diff .
+      - name: Run mypy on python files
+        run: |
+          python3 -m mypy .
+      - name: Run yamllint on workflows
+        run: |
+          python3 -m yamllint -d "{extends: default, rules: {document-start: {present: false}, line-length: disable, truthy: {check-keys: false}}}" .
+      - name: Run documentation generation
+        run: |
+          cd docs && python3 -m sphinx -W -b html . build/html
+      - name: Run ruff on tutorial files
+        run: |
+          python3 -m nbqa ruff .
+      - name: Run isort on tutorial files
+        run: |
+          python3 -m nbqa isort --check --diff .
+      - name: Run mypy on tutorial files
+        run: |
+          python3 -m nbqa mypy .
+      - name: Check for stray outputs, counts and metadata in ipynb files
+        uses: RBniCS/check-jupyter-metadata-action@main
+        with:
+          pattern: "**/*.ipynb"
