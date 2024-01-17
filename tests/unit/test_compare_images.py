@@ -112,7 +112,7 @@ def test_compare_images_different_size(image_cache: str) -> None:
         stdout_buffer.close()
 
 
-def test_compare_images_pyvista_success(image_cache: str) -> None:
+def test_compare_images_pyvista_success(image_cache: str, check_monitor_resolution: bool) -> None:
     """Test that two images representing half a sphere are the same."""
     expected_image_path = os.path.join(image_cache, "test_compare_images_pyvista_success.png")
     assert os.path.exists(expected_image_path)
@@ -130,7 +130,7 @@ def test_compare_images_pyvista_success(image_cache: str) -> None:
         stdout_buffer.close()
 
 
-def test_compare_images_pyvista_failure(image_cache: str) -> None:
+def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resolution: bool) -> None:
     """Test that two images representing different halves of a sphere are different."""
     expected_image_path = os.path.join(image_cache, "test_compare_images_pyvista_failure.png")
     assert os.path.exists(expected_image_path)

@@ -65,7 +65,8 @@ lint = [
 ]
 tests = [
     "coverage[toml]",
-    "nbqa"
+    "nbqa",
+    "screeninfo"
 ]
 
 [tool.coverage.paths]
