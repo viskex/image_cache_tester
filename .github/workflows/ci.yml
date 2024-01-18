@@ -46,7 +46,7 @@ jobs:
       - name: Run mypy on python files
         run: |
           python3 -m mypy --exclude=conftest.py .
-          python3 -m mypy tests/notebooks/conftest.py
+          python3 -m mypy tests/notebooks/basic/conftest.py
           python3 -m mypy tests/unit/conftest.py
       - name: Run yamllint on workflows
         run: |
@@ -72,11 +72,11 @@ jobs:
         uses: RBniCS/check-jupyter-metadata-action@main
         with:
           pattern: "**/*.ipynb"
-      - name: Run notebooks tests
+      - name: Run basic notebooks tests
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
-          COVERAGE_FILE=.coverage_notebooks python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow tests/notebooks
+          COVERAGE_FILE=.coverage_notebooks_basic python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow tests/notebooks/basic
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()
         uses: actions/upload-artifact@v3
