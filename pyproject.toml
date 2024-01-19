@@ -59,13 +59,13 @@ docs = [
 lint = [
     "isort",
     "mypy",
+    "nbqa",
     "ruff",
     "types-Pillow",
     "yamllint"
 ]
 tests = [
     "coverage[toml]",
-    "nbqa",
     "screeninfo"
 ]
 
