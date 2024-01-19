@@ -132,9 +132,7 @@ jobs:
         with:
           name: "image-cache-test-logs-${{ matrix.backend }}"
           path: |
-            _notebook_repository/**/.image_cache/**/*.png
             _notebook_repository/**/.ipynb_pytest/**/*.log*
-            _notebook_repository/**/.ipynb_pytest/**/.image_from_pytest/**/*.png
       - name: Refresh image cache
         if: failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' && steps.verify_images_parallel_static.outcome == 'failure' && steps.verify_images_parallel_html.outcome == 'failure')
         run: |
