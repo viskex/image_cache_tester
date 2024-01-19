@@ -48,12 +48,11 @@ def sessionstart(session: pytest.Session) -> None:
     calling_dirs = session.config.args
     assert len(calling_dirs) == 1
     calling_dir = calling_dirs[0]
-    work_dir = os.path.join(calling_dir, session.config.option.work_dir)
     notebooks = dict()
-    for dir_entry in _pytest.pathlib.visit(work_dir, lambda _: True):
+    for dir_entry in _pytest.pathlib.visit(calling_dir, lambda _: True):
         if dir_entry.is_file():
             filepath = str(dir_entry.path)
-            if fnmatch.fnmatch(filepath, "**/*.ipynb"):
+            if fnmatch.fnmatch(filepath, f"**/{session.config.option.work_dir}/*.ipynb"):
                 assert not fnmatch.fnmatch(filepath, "**/*.log.ipynb")
                 with open(filepath) as f:
                     notebooks[filepath] = nbformat.read(f, as_version=4)  # type: ignore[no-untyped-call]
