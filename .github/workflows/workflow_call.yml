@@ -91,6 +91,10 @@ jobs:
         run: |
           sed -i 's|nbvalx.pytest_hooks_notebooks|image_cache_tester.pytest_hooks_notebooks|g' ${{ inputs.notebook_directory }}/conftest.py
         working-directory: _notebook_repository
+      - name: Create symbolic links to image cache in subdirectories
+        run: |
+          find . -mindepth 1 -mindepth 1 -type d -not -path '*/\.*' -exec ln -s ../.image_cache {}/.image_cache \;
+        working-directory: _notebook_repository/${{ inputs.notebook_directory }}
       - name: Verify images in notebooks (serial, static pyvista backend)
         id: verify_images_serial_static
         run: |
