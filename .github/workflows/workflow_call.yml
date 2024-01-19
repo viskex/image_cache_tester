@@ -1,0 +1,156 @@
+name: Run image cache tests
+
+on:
+  workflow_call:
+    inputs:
+      notebook_repository:
+        description: "Repository with the notebooks to be processed"
+        type: string
+      notebook_branch:
+        description: "Branch of the repository with the notebooks to be processed"
+        type: string
+      image_cache_branch:
+        description: "Branch of the repository with the image cache"
+        type: string
+      notebook_preparation:
+        description: "Script to be run before processing notebooks"
+        type: string
+      notebook_directory:
+        description: "Directory with the notebooks to be processed"
+        type: string
+    secrets:
+      REPO_ACCESS_TOKEN:
+        description: "Token that enables writing to the notebook repository"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - backend: real
+            container: numericalpdes/numericalpdes:latest-real
+          - backend: complex
+            container: numericalpdes/numericalpdes:latest-complex
+      fail-fast: false
+    container: ${{ matrix.container }}
+    env:
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+    steps:
+      - name: Mark workspace as safe
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+      - uses: actions/checkout@v4
+        with:
+          set-safe-directory: false
+      - name: Fetch updated package list
+        run: apt update -y -q
+      - name: Install non-pip dependencies of the image cache tester library
+        run: |
+          apt install -y -qq xvfb
+      - name: Determine which branch to use while cloning the image cache tester library
+        id: image_cache_tester_library_branch
+        run: |
+          if [[ "${{ github.repository }}" == "viskex/image_cache_tester" ]]; then
+            BRANCH=${GITHUB_REF##*/}
+          else
+            BRANCH="main"
+          fi
+          echo "branch=${BRANCH}" >> ${GITHUB_OUTPUT}
+      - name: Clone image cache tester library
+        uses: actions/checkout@v4
+        with:
+          repository: viskex/image_cache_tester
+          ref: ${{ steps.image_cache_tester_library_branch.outputs.branch }}
+          path: _image_cache_tester_library
+      - name: Install the image cache tester library
+        run: |
+          pushd _image_cache_tester_library
+          python3 -m pip install .[tests]
+          popd
+          rm -rf _image_cache_tester_library
+        shell: bash
+      - name: Clone notebook repository on notebook branch
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ inputs.notebook_repository }}"
+          ref: "${{ inputs.notebook_branch }}"
+          path: "_notebook_repository"
+      - name: Mark clone of the notebook repository on image cache branch as safe
+        run: |
+          git config --global --add safe.directory _notebook_repository/${{ inputs.notebook_directory }}/.image_cache
+      - name: Clone notebook repository on image cache branch
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ inputs.notebook_repository }}"
+          token: "${{ secrets.REPO_ACCESS_TOKEN || github.token }}"
+          ref: "${{ inputs.image_cache_branch }}"
+          fetch-depth: 0
+          path: "_notebook_repository/${{ inputs.notebook_directory }}/.image_cache"
+          set-safe-directory: false
+      - name: Run notebook preparation
+        run: |
+          ${{ inputs.notebook_preparation }}
+        working-directory: _notebook_repository
+      - name: Replace nbvalx in notebooks conftest.py
+        run: |
+          sed -i 's|nbvalx.pytest_hooks_notebooks|image_cache_tester.pytest_hooks_notebooks|g' ${{ inputs.notebook_directory }}/conftest.py
+      - name: Verify images in notebooks (serial, static pyvista backend)
+        id: verify_images_serial_static
+        run: |
+          export DISPLAY=":99"
+          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
+          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+        working-directory: _notebook_repository
+      - name: Verify images in notebooks (serial, html pyvista backend)
+        id: verify_images_serial_html
+        if: success() || (failure() && steps.verify_images_serial_static.outcome == 'failure')
+        run: |
+          export DISPLAY=":99"
+          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
+          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+        working-directory: _notebook_repository
+      - name: Verify images in notebooks (parallel, static pyvista backend)
+        id: verify_images_parallel_static
+        if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure'))
+        run: |
+          export DISPLAY=":99"
+          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
+          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+        working-directory: _notebook_repository
+      - name: Verify images in notebooks (parallel, html pyvista backend)
+        id: verify_images_parallel_html
+        if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' && steps.verify_images_parallel_static.outcome == 'failure'))
+        run: |
+          export DISPLAY=":99"
+          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
+          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+        working-directory: _notebook_repository
+      - name: Upload notebooks logs as an artifact in case of failure
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v3
+        with:
+          name: "image-cache-test-logs-${{ matrix.backend }}"
+          path: |
+            _notebook_repository/**/.ipynb_pytest/**/*.log*
+      - name: Refresh image cache
+        if: failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' && steps.verify_images_parallel_static.outcome == 'failure' && steps.verify_images_parallel_html.outcome == 'failure')
+        run: |
+          DATETIME=$(date '+%Y%m%d-%H%M%S')
+          pushd _notebook_repository
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          popd
+          pushd _notebook_repository/${{ inputs.notebook_directory }}/.image_cache
+          git fetch origin
+          BRANCH="${{ inputs.image_cache_branch }}-update-${SHA_SHORT}-${{ matrix.backend }}-${DATETIME}"
+          git checkout -b ${BRANCH}
+          git add .
+          if [[ "$(git diff --name-only --cached | wc -l)" -gt 0 ]]; then
+            git config user.name "GitHub Actions"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Refresh image cache at ${SHA_SHORT} for ${{ matrix.backend }} scalar type"
+            git push origin ${BRANCH}
+          fi
+          popd
+        shell: bash

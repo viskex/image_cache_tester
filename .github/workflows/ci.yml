@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test_library:
     runs-on: ubuntu-latest
     container: debian:testing
     steps:
@@ -98,3 +98,24 @@ jobs:
         run: |
           python3 -m coverage combine .coverage*
           python3 -m coverage report --fail-under=100 --show-missing --skip-covered
+
+  test_workflow_call:
+    needs: [test_library]
+    uses: viskex/image_cache_tester/.github/workflows/workflow_call.yml@main
+    with:
+      notebook_repository: viskex/image_cache_tester
+      notebook_branch: ${{ github.ref }}
+      image_cache_branch: image-cache-viskex-tests
+      notebook_preparation: |
+        python3 -m pip install "viskex[tests] @ git+https://github.com/viskex/viskex.git"
+      notebook_directory: tests/notebooks/viskex
+
+  warn:
+    runs-on: ubuntu-latest
+    if: github.repository == 'viskex/image_cache_tester' && github.ref == 'refs/heads/main' && github.event_name == 'schedule'
+    steps:
+      - name: Warn if scheduled workflow is about to be disabled
+        uses: fem-on-colab/warn-workflow-about-to-be-disabled-action@main
+        with:
+          workflow-filename: ci.yml
+          days-elapsed: 50
