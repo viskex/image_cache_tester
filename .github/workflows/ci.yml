@@ -84,6 +84,16 @@ jobs:
           name: "notebooks-logs"
           path: |
             tests/notebooks/**/.ipynb_pytest/**/*.log*
+      - name: Generate viskex notebooks tests
+        run: |
+          NO_TESTS_COLLECTED=5
+          COVERAGE_FILE=.coverage_notebooks_viskex_generation_serial python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow --verify-images --refresh-image-cache --ipynb-action=create-notebooks tests/notebooks/viskex || (($?==$NO_TESTS_COLLECTED))
+          COVERAGE_FILE=.coverage_notebooks_viskex_generation_parallel python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow --verify-images --refresh-image-cache --ipynb-action=create-notebooks --np=2 tests/notebooks/viskex || (($?==$NO_TESTS_COLLECTED))
+        shell: bash
+      - name: Run viskex notebooks tests to check that they are skipped because of missing backends
+        run: |
+          COVERAGE_FILE=.coverage_notebooks_viskex_run_serial python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow --verify-images --refresh-image-cache tests/notebooks/viskex
+          COVERAGE_FILE=.coverage_notebooks_viskex_run_parallel python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow --verify-images --refresh-image-cache --np=2 tests/notebooks/viskex
       - name: Combine coverage reports
         run: |
           python3 -m coverage combine .coverage*
