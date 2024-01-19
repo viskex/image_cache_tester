@@ -142,7 +142,6 @@ jobs:
           SHA_SHORT=$(git rev-parse --short HEAD)
           popd
           pushd _notebook_repository/${{ inputs.notebook_directory }}/.image_cache
-          git fetch origin
           BRANCH="${{ inputs.image_cache_branch }}-update-${SHA_SHORT}-${{ matrix.backend }}-${DATETIME}"
           git checkout -b ${BRANCH}
           git add .
