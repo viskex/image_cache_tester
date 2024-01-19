@@ -135,6 +135,9 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str) -> None:
         IPython.display.display(expected_image)
         IPython.display.display("Difference between screenshots")
         IPython.display.display(difference_image)
+    else:
+        IPython.display.display("Actual screenshot")
+        IPython.display.display(screenshot_image)
     if {refresh_image_cache}:
         shutil.copy(screenshot_image_path, expected_image_path)
     if difference_image.getbbox():
