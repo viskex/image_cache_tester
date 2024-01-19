@@ -122,7 +122,16 @@ def screenshot_image_path_generator(cell_id: str, comm_size: int, comm_rank: int
     """Return where to save the screenshot associated to a cell id."""
     return _image_path_generator(".image_from_pytest", cell_id, comm_size, comm_rank)
 
-def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str) -> None:
+class ImageVerificationError(RuntimeError):
+    """Specialization of a runtime error for image verification."""
+
+    _failures = 0
+
+    def __init__(self, info: str) -> None:
+        super().__init__(self, info)
+        ImageVerificationError._failures += 1
+
+def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_cache: bool, xfail: bool) -> None:
     """Compare plotter image to cache, and raise an error if comparison fails."""
     screenshot_image_path = screenshot_image_path_generator(cell_id, {np}, mpi4py.MPI.COMM_WORLD.rank)
     expected_image_path = expected_image_path_generator(cell_id, {np}, mpi4py.MPI.COMM_WORLD.rank)
@@ -138,10 +147,10 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str) -> None:
     else:
         IPython.display.display("Actual screenshot")
         IPython.display.display(screenshot_image)
-    if {refresh_image_cache}:
+    if refresh_image_cache and not xfail:
         shutil.copy(screenshot_image_path, expected_image_path)
-    if difference_image.getbbox():
-        raise RuntimeError("Image cache verification failed for cell " + cell_id)'''
+    if difference_image.getbbox() and not xfail:
+        raise ImageVerificationError("Image cache verification failed for cell " + cell_id)'''
         if np > 1:
             # Add the cell after the cluster start one, so that %%px is available
             image_paths_position = 1
@@ -163,6 +172,12 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str) -> None:
             ):
                 lines = cell.source.splitlines()
                 cell_id = cell.id.replace("-", "_")
+                # Allow cell to fail if refreshing image cache
+                if refresh_image_cache and "PYTEST_XFAIL" not in cell.source:
+                    xfail_line_index = 0
+                    while lines[xfail_line_index].startswith("%"):
+                        xfail_line_index += 1
+                    lines.insert(xfail_line_index, "# PYTEST_XFAIL: allow cell failure while refreshing image cache")
                 # Need to change the code to ensure that the plotter is fetched as a return variable
                 plotter_variable = ""
                 for (line_index, line) in enumerate(lines):
@@ -186,10 +201,23 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str) -> None:
                         lines[line_index] = line
                 assert plotter_variable != ""
                 # Add call to verify_image
-                verify_image_code = f"""verify_plotter_image({plotter_variable}, "{cell_id}")"""
+                verify_image_code = f"""verify_plotter_image(
+    {plotter_variable}, "{cell_id}", {refresh_image_cache}, {"PYTEST_XFAIL" in cell.source})"""
                 lines.append(verify_image_code)
                 cell.source = "\n".join(lines)
-    # Write modified notebooks to the work directory
-    for (ipynb_path, nb) in notebooks.items():
+        # Add a final summary of how many image verification failures there were
+        failures_summary_code = """if ImageVerificationError._failures > 0:
+    raise ImageVerificationError(
+        "There were " + str(ImageVerificationError._failures) + " image verification failures.")"""
+        if np > 1:
+            # Add the cell before the cluster stop one, so that %%px is still available
+            failures_summary_position = len(nb.cells) - 1
+            failures_summary_code = "%%px --no-stream\n" + failures_summary_code
+        else:
+            failures_summary_position = len(nb.cells)
+        failures_summary_cell = nbformat.v4.new_code_cell(failures_summary_code)  # type: ignore[no-untyped-call]
+        failures_summary_cell.id = "failures_summary"
+        nb.cells.insert(failures_summary_position, failures_summary_cell)
+        # Write modified notebook to the work directory
         with open(ipynb_path, "w") as f:
             nbformat.write(nb, f)  # type: ignore[no-untyped-call]
