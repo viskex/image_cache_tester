@@ -38,12 +38,6 @@ jobs:
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
     steps:
-      - name: Mark workspace as safe
-        run: |
-          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
-      - uses: actions/checkout@v4
-        with:
-          set-safe-directory: false
       - name: Fetch updated package list
         run: apt update -y -q
       - name: Install non-pip dependencies of the image cache tester library
@@ -96,6 +90,7 @@ jobs:
       - name: Replace nbvalx in notebooks conftest.py
         run: |
           sed -i 's|nbvalx.pytest_hooks_notebooks|image_cache_tester.pytest_hooks_notebooks|g' ${{ inputs.notebook_directory }}/conftest.py
+        working-directory: _notebook_repository
       - name: Verify images in notebooks (serial, static pyvista backend)
         id: verify_images_serial_static
         run: |
