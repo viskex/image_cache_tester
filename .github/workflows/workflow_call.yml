@@ -128,7 +128,7 @@ jobs:
         working-directory: _notebook_repository
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "image-cache-test-logs-${{ matrix.backend }}"
           path: |

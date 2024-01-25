@@ -79,7 +79,7 @@ jobs:
           COVERAGE_FILE=.coverage_notebooks_basic python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow tests/notebooks/basic
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "notebooks-logs"
           path: |
