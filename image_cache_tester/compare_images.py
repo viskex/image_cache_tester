@@ -6,7 +6,6 @@
 """Compare two images using PIL."""
 
 import os
-import typing
 
 import PIL.Image
 import PIL.ImageChops
@@ -15,7 +14,7 @@ import pyvista
 
 def compare_images(  # type: ignore[no-any-unimported]
     plotter: pyvista.Plotter, plotter_screenshot: str, expected_screenshot: str, verbose: bool
-) -> typing.Tuple[PIL.Image.Image, PIL.Image.Image, PIL.Image.Image]:
+) -> tuple[PIL.Image.Image, PIL.Image.Image, PIL.Image.Image]:
     """
     Compare the image contained in a pyvista plotter to a cached one.
 
@@ -42,7 +41,7 @@ def compare_images(  # type: ignore[no-any-unimported]
 
 def _compare_images(
     actual_image_path: str, expected_image_path: str, verbose: bool
-) -> typing.Tuple[PIL.Image.Image, PIL.Image.Image, PIL.Image.Image]:
+) -> tuple[PIL.Image.Image, PIL.Image.Image, PIL.Image.Image]:
     """
     Compare two images. RGBA images are silently converted to RGB ignoring alpha channels.
 
