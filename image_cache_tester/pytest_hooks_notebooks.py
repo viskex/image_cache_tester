@@ -6,9 +6,8 @@
 """Utility functions to be used in pytest configuration file for notebooks tests."""
 
 import fnmatch
-import os
+import pathlib
 
-import _pytest.pathlib
 import nbformat
 import nbvalx.pytest_hooks_notebooks
 import pytest
@@ -44,20 +43,24 @@ def sessionstart(session: pytest.Session) -> None:
     # Proceed with the rest only if image verification was requested
     if not verify_images:  # pragma: no cover
         return
+    # pathlib.PurePath.full_match is only available in python 3.13+. In the meantime,
+    # implement the comparison using fnmatch
+    def full_match(path: pathlib.Path, pattern: str) -> bool:
+        """Backport of pathlib.PurePath.full_match."""
+        return fnmatch.fnmatch(str(path), pattern)
     # Get all notebooks in the work directory
     calling_dirs = session.config.args
     assert len(calling_dirs) == 1
-    calling_dir = calling_dirs[0]
+    calling_dir = pathlib.Path(calling_dirs[0])
     notebooks = dict()
-    for dir_entry in _pytest.pathlib.visit(calling_dir, lambda _: True):
+    for dir_entry in calling_dir.rglob("*"):
         if dir_entry.is_file():
-            filepath = str(dir_entry.path)
-            if fnmatch.fnmatch(filepath, f"**/{session.config.option.work_dir}/*.ipynb"):
-                assert not fnmatch.fnmatch(filepath, "**/*.log.ipynb")
-                with open(filepath) as f:
-                    notebooks[filepath] = nbformat.read(f, as_version=4)  # type: ignore[no-untyped-call]
+            if full_match(dir_entry, f"**/{session.config.option.work_dir}/*.ipynb"):
+                assert not full_match(dir_entry, "**/*.log.ipynb")
+                with open(dir_entry) as f:
+                    notebooks[dir_entry] = nbformat.read(f, as_version=4)  # type: ignore[no-untyped-call]
     # Update notebook with image verification
-    for (ipynb_path, nb) in notebooks.items():
+    for (nb_path, nb) in notebooks.items():
         # Add a cell on top for computation of expected and actual image paths
         image_paths_code = f'''import os
 import shutil
@@ -97,10 +100,10 @@ if pyvista_jupyter_backend not in ("html", "static"):
 
 def _image_path_generator(directory: str, cell_id: str, comm_size: int, comm_rank: int) -> str:
     """Return the image name associated to a cell id."""
-    ipynb_name = "{os.path.basename(ipynb_path)}"
+    ipynb_name = "{nb_path.name}"
     assert ipynb_name.endswith(".ipynb")
     ipynb_name = ipynb_name[:-6]  # drop extension
-    ipynb_dir = "{os.path.dirname(ipynb_path)}"
+    ipynb_dir = "{nb_path.parent}"
     if np.issubdtype(viskex.utils.ScalarType, np.complexfloating):
         output_scalar_type = "complex"
     else:
@@ -218,5 +221,5 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
         failures_summary_cell.id = "failures_summary"
         nb.cells.insert(failures_summary_position, failures_summary_cell)
         # Write modified notebook to the work directory
-        with open(ipynb_path, "w") as f:
+        with open(nb_path, "w") as f:
             nbformat.write(nb, f)  # type: ignore[no-untyped-call]
