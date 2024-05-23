@@ -120,7 +120,7 @@ jobs:
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, html pyvista backend)
         id: verify_images_parallel_html
-        if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' && steps.verify_images_parallel_static.outcome == 'failure'))
+        if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' || steps.verify_images_parallel_static.outcome == 'failure'))
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
@@ -134,7 +134,7 @@ jobs:
           path: |
             _notebook_repository/**/.ipynb_pytest/**/*.log*
       - name: Refresh image cache
-        if: failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' && steps.verify_images_parallel_static.outcome == 'failure' && steps.verify_images_parallel_html.outcome == 'failure')
+        if: failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' || steps.verify_images_parallel_static.outcome == 'failure' || steps.verify_images_parallel_html.outcome == 'failure')
         run: |
           DATETIME=$(date '+%Y%m%d-%H%M%S')
           pushd _notebook_repository
