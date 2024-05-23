@@ -107,7 +107,13 @@ jobs:
       notebook_branch: ${{ github.ref }}
       image_cache_branch: image-cache-viskex-tests
       notebook_preparation: |
-        python3 -m pip install "viskex[tests] @ git+https://github.com/viskex/viskex.git"
+        git clone https://github.com/viskex/viskex.git
+        cd viskex
+        TMP_DIR=$(mktemp -d)
+        rsync -arvz --include='*firedrake*' --include='*/' --exclude='*' ./ ${TMP_DIR}/
+        ${DOCKER_SCRIPTS}/scripts/replace_ufl.sh ${TMP_DIR}
+        rsync -arvz ${TMP_DIR}/ ./
+        python3 -m pip install .[tests]
       notebook_directory: tests/notebooks/viskex
 
   warn:
