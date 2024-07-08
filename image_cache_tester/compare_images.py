@@ -12,7 +12,7 @@ import PIL.ImageChops
 import pyvista
 
 
-def compare_images(  # type: ignore[no-any-unimported]
+def compare_images(
     plotter: pyvista.Plotter, plotter_screenshot: str, expected_screenshot: str, verbose: bool
 ) -> tuple[PIL.Image.Image, PIL.Image.Image, PIL.Image.Image]:
     """
@@ -34,8 +34,8 @@ def compare_images(  # type: ignore[no-any-unimported]
     :
         A tuple containing three images in pillow format: plotter screenshot, expected screenshot and their difference.
     """
-    plotter.show(auto_close=False)
-    plotter.screenshot(plotter_screenshot)
+    plotter.show(auto_close=False)  # type: ignore[no-untyped-call]
+    plotter.screenshot(plotter_screenshot)  # type: ignore[no-untyped-call]
     return _compare_images(plotter_screenshot, expected_screenshot, verbose)
 
 
