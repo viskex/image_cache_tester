@@ -84,6 +84,7 @@ jobs:
           name: "notebooks-logs"
           path: |
             tests/notebooks/**/.ipynb_pytest/**/*.log*
+          include-hidden-files: true
       - name: Generate viskex notebooks tests
         run: |
           NO_TESTS_COLLECTED=5
