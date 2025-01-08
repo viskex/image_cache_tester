@@ -1,4 +1,4 @@
-# Copyright (C) 2024 by the viskex authors
+# Copyright (C) 2024-2025 by the viskex authors
 #
 # This file is part of viskex.
 #
