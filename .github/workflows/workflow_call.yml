@@ -29,9 +29,9 @@ jobs:
       matrix:
         include:
           - backend: real
-            container: numericalpdes/numericalpdes:latest-real
+            container: ghcr.io/numericalpdes/numericalpdes-real:latest
           - backend: complex
-            container: numericalpdes/numericalpdes:latest-complex
+            container: ghcr.io/numericalpdes/numericalpdes-complex:latest
       fail-fast: false
     container: ${{ matrix.container }}
     env:
