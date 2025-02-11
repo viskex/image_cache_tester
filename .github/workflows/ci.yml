@@ -110,10 +110,6 @@ jobs:
       notebook_preparation: |
         git clone https://github.com/viskex/viskex.git
         cd viskex
-        TMP_DIR=$(mktemp -d)
-        rsync -arvz --include='*firedrake*' --include='*/' --exclude='*' ./ ${TMP_DIR}/
-        ${DOCKER_SCRIPTS}/scripts/replace_ufl.sh ${TMP_DIR}
-        rsync -arvz ${TMP_DIR}/ ./
         python3 -m pip install .[tests]
       notebook_directory: tests/notebooks/viskex
 
