@@ -36,6 +36,7 @@ def compare_images(
     """
     plotter.show(auto_close=False)  # type: ignore[no-untyped-call]
     plotter.screenshot(plotter_screenshot)  # type: ignore[no-untyped-call]
+    plotter.close()  # type: ignore[no-untyped-call]
     return _compare_images(plotter_screenshot, expected_screenshot, verbose)
 
 
