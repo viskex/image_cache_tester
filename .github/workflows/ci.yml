@@ -14,7 +14,7 @@ on:
 jobs:
   test_library:
     runs-on: ubuntu-latest
-    container: debian:testing
+    container: debian:12
     steps:
       - name: Install git
         run: |
