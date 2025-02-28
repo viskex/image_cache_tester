@@ -102,7 +102,7 @@ jobs:
 
   test_workflow_call:
     needs: [test_library]
-    uses: viskex/image_cache_tester/.github/workflows/workflow_call.yml@main
+    uses: viskex/image_cache_tester/.github/workflows/workflow_call.yml@fd
     with:
       notebook_repository: viskex/image_cache_tester
       notebook_branch: ${{ github.ref }}
