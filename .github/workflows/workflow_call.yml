@@ -58,14 +58,22 @@ jobs:
               export DEBIAN_FRONTEND="noninteractive"
               apt update -y -q
               apt install -y -qq xvfb
-              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
+              PYTHON_VERSION=$(python3 -V | awk '{print $2}' | cut -d. -f1,2)
+              rm /usr/lib/python${PYTHON_VERSION}/EXTERNALLY-MANAGED
+              FIREDRAKE_HOME=/home/firedrake/.local
+              echo "${FIREDRAKE_HOME}/bin" >> $GITHUB_PATH
+              echo "PYTHONPATH=${FIREDRAKE_HOME}/lib/python${PYTHON_VERSION}/site-packages" >> $GITHUB_ENV
           - backend: firedrake-complex
             container: firedrakeproject/firedrake-vanilla-complex
             setup_container: |
               export DEBIAN_FRONTEND="noninteractive"
               apt update -y -q
               apt install -y -qq xvfb
-              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
+              PYTHON_VERSION=$(python3 -V | awk '{print $2}' | cut -d. -f1,2)
+              rm /usr/lib/python${PYTHON_VERSION}/EXTERNALLY-MANAGED
+              FIREDRAKE_HOME=/home/firedrake/.local
+              echo "${FIREDRAKE_HOME}/bin" >> $GITHUB_PATH
+              echo "PYTHONPATH=${FIREDRAKE_HOME}/lib/python${PYTHON_VERSION}/site-packages" >> $GITHUB_ENV
       fail-fast: false
     container:
       image: ${{ matrix.container }}
