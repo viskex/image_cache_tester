@@ -53,19 +53,19 @@ jobs:
               echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
               echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" >> $GITHUB_ENV
           - backend: firedrake-real
-            container: firedrakeproject/firedrake
+            container: firedrakeproject/firedrake-vanilla-default
             setup_container: |
               export DEBIAN_FRONTEND="noninteractive"
               apt update -y -q
               apt install -y -qq xvfb
-              echo "/home/firedrake/firedrake/bin" >> $GITHUB_PATH
+              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
           - backend: firedrake-complex
-            container: firedrakeproject/firedrake-complex
+            container: firedrakeproject/firedrake-vanilla-complex
             setup_container: |
               export DEBIAN_FRONTEND="noninteractive"
               apt update -y -q
               apt install -y -qq xvfb
-              echo "/home/firedrake/firedrake/bin" >> $GITHUB_PATH
+              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
       fail-fast: false
     container:
       image: ${{ matrix.container }}
