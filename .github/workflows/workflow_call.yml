@@ -67,9 +67,7 @@ jobs:
               apt install -y -qq xvfb
               rm /usr/lib/python3.*/EXTERNALLY-MANAGED
       fail-fast: false
-    container:
-      image: ${{ matrix.container }}
-      options: --user root
+    container: ${{ matrix.container }}
     env:
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
