@@ -6,6 +6,7 @@
 """pytest configuration file for unit tests."""
 
 import os
+import time
 
 import pytest
 import screeninfo
@@ -20,6 +21,18 @@ def image_cache() -> str:
 @pytest.fixture
 def check_monitor_resolution() -> bool:
     """Check that the monitor resolution is the same as the one which was used to generate pyvista images."""
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            monitors = screeninfo.get_monitors()
+        except screeninfo.ScreenInfoError as e:
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise e
+        else:
+            break
+
     monitors = screeninfo.get_monitors()
     if len(monitors) == 0:  # pragma: no cover
         raise RuntimeError("No monitors found")

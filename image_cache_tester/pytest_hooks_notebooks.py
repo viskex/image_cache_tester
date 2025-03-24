@@ -64,6 +64,7 @@ def sessionstart(session: pytest.Session) -> None:
         # Add a cell on top for computation of expected and actual image paths
         image_paths_code = f'''import os
 import shutil
+import time
 
 import IPython.display
 import mpi4py.MPI
@@ -77,7 +78,17 @@ import viskex.utils
 import image_cache_tester.compare_images  # isort: skip
 
 # Check that the monitor resolution is the same as the one which was used to generate pyvista images.
-monitors = screeninfo.get_monitors()
+max_retries = 5
+for attempt in range(max_retries):
+    try:
+        monitors = screeninfo.get_monitors()
+    except screeninfo.ScreenInfoError as e:
+        if attempt < max_retries - 1:
+            time.sleep(1)
+        else:
+            raise e
+    else:
+        break
 if len(monitors) == 0:  # pragma: no cover
     raise RuntimeError("No monitors found")
 elif len(monitors) > 1:  # pragma: no cover
