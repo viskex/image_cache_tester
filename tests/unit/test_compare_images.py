@@ -137,7 +137,7 @@ def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resoluti
     expected_difference_image_path = os.path.join(
         image_cache, "test_compare_images_pyvista_failure_difference_image.png")
     assert os.path.exists(expected_difference_image_path)
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as plotter_screenshot_file:
+    with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
         plotter = pyvista.Plotter(off_screen=True)  # type: ignore[no-untyped-call]
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
