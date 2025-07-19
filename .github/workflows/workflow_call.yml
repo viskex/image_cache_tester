@@ -28,52 +28,26 @@ jobs:
     strategy:
       matrix:
         include:
-          - backend: dolfinx-real
+          - backend: dolfinx-nightly-real
             container: ghcr.io/fenics/dolfinx/dolfinx:nightly
-            setup_container: |
-              export DEBIAN_FRONTEND="noninteractive"
-              apt update -y -q
-              apt install -y -qq xvfb
-              . /usr/local/bin/dolfinx-real-mode
-              echo "PETSC_ARCH=$PETSC_ARCH" >> $GITHUB_ENV
-              echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
-              echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-              echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-              echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" >> $GITHUB_ENV
-          - backend: dolfinx-complex
+            petsc_arch: real
+          - backend: dolfinx-nightly-complex
             container: ghcr.io/fenics/dolfinx/dolfinx:nightly
-            setup_container: |
-              export DEBIAN_FRONTEND="noninteractive"
-              apt update -y -q
-              apt install -y -qq xvfb
-              . /usr/local/bin/dolfinx-complex-mode
-              echo "PETSC_ARCH=$PETSC_ARCH" >> $GITHUB_ENV
-              echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
-              echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
-              echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
-              echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" >> $GITHUB_ENV
-          - backend: firedrake-real
+            petsc_arch: complex
+          - backend: firedrake-nightly-real
             container: firedrakeproject/firedrake-vanilla-default
-            setup_container: |
-              export DEBIAN_FRONTEND="noninteractive"
-              apt update -y -q
-              apt install -y -qq xvfb
-              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
-          - backend: firedrake-complex
+            petsc_arch: real
+          - backend: firedrake-nightly-complex
             container: firedrakeproject/firedrake-vanilla-complex
-            setup_container: |
-              export DEBIAN_FRONTEND="noninteractive"
-              apt update -y -q
-              apt install -y -qq xvfb
-              rm /usr/lib/python3.*/EXTERNALLY-MANAGED
+            petsc_arch: complex
       fail-fast: false
     container: ${{ matrix.container }}
-    env:
-      OMPI_ALLOW_RUN_AS_ROOT: 1
-      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
     steps:
-      - name: Setup container
-        run: ${{ matrix.setup_container }}
+      - name: Setup git
+        run: |
+          export DEBIAN_FRONTEND="noninteractive"
+          apt update -y -q
+          apt install -y -qq git
       - name: Determine which branch to use while cloning the image cache tester library
         id: image_cache_tester_library_branch
         run: |
@@ -89,6 +63,25 @@ jobs:
           repository: viskex/image_cache_tester
           ref: ${{ steps.image_cache_tester_library_branch.outputs.branch }}
           path: _image_cache_tester_library
+      - name: Setup container
+        run: |
+          export DEBIAN_FRONTEND="noninteractive"
+          apt update -y -q
+          apt install -y -qq xvfb
+          if [[ "${{ matrix.backend }}" == "dolfinx"* ]]; then
+            . /usr/local/bin/dolfinx-${{ matrix.petsc_arch }}-mode
+            echo "PETSC_ARCH=$PETSC_ARCH" >> $GITHUB_ENV
+            echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH" >> $GITHUB_ENV
+            echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+            echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+            echo "CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH" >> $GITHUB_ENV
+          elif [[ "${{ matrix.backend }}" == "firedrake"* ]]; then
+            rm /usr/lib/python3.*/EXTERNALLY-MANAGED
+          else
+            echo "Invalid backend"
+            exit 1
+          fi
+        shell: bash
       - name: Install the image cache tester library
         run: |
           pushd _image_cache_tester_library
