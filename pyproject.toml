@@ -47,10 +47,10 @@ issues = "https://github.com/viskex/image_cache_tester/issues"
 funding = "https://github.com/sponsors/francesco-ballarin"
 
 [project.optional-dependencies]
-backend_dolfinx = [
+backend-dolfinx = [
     "fenics-dolfinx"
 ]
-backend_firedrake = [
+backend-firedrake = [
     "firedrake"
 ]
 docs = [
