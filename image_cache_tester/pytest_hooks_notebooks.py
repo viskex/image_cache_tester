@@ -193,10 +193,12 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
                     lines.insert(xfail_line_index, "# PYTEST_XFAIL: allow cell failure while refreshing image cache")
                 # Need to change the code to ensure that the plotter is fetched as a return variable
                 plotter_variable = ""
+                indentation_length = -1
                 for (line_index, line) in enumerate(lines):
                     if "viskex." in line and ".plot" in line:
                         assert plotter_variable == "", "Expecting one plot per cell"
-                        if line.lstrip().startswith("viskex."):
+                        indentation_length = len(line) - len(line.lstrip())
+                        if line[indentation_length:].startswith("viskex."):
                             # The plotter is returned but not stored in a local variable, so we need to add it
                             plotter_variable = f"plotter_{cell_id}"
                             line = line.replace("viskex.", f"{plotter_variable} = viskex.", 1)
@@ -205,6 +207,7 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
                             first_viskex_occurrence = line.find("viskex.")
                             assert "=" in  line[:first_viskex_occurrence]
                             plotter_variable, _ = line.split("=", 1)
+                            plotter_variable = plotter_variable.strip()
                         # Do not automatically show plotter
                         if "viskex.dolfinx" in line:
                             line = line.replace("viskex.dolfinx", "viskex.DolfinxPlotter")
@@ -213,9 +216,11 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
                         # Replace in cell code
                         lines[line_index] = line
                 assert plotter_variable != ""
+                assert indentation_length >= 0
                 # Add call to verify_image
-                verify_image_code = f"""verify_plotter_image(
-    {plotter_variable}, "{cell_id}", {refresh_image_cache}, {"PYTEST_XFAIL" in cell.source})"""
+                indentation = " " * indentation_length
+                verify_image_code = f"""{indentation}verify_plotter_image(
+{indentation}    {plotter_variable}, "{cell_id}", {refresh_image_cache}, {"PYTEST_XFAIL" in cell.source})"""
                 lines.append(verify_image_code)
                 cell.source = "\n".join(lines)
         # Add a final summary of how many image verification failures there were
