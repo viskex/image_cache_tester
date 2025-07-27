@@ -124,7 +124,7 @@ jobs:
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
-          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (serial, html pyvista backend)
         id: verify_images_serial_html
@@ -132,7 +132,7 @@ jobs:
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
-          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, static pyvista backend)
         id: verify_images_parallel_static
@@ -140,7 +140,7 @@ jobs:
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
-          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, html pyvista backend)
         id: verify_images_parallel_html
@@ -148,7 +148,7 @@ jobs:
         run: |
           export DISPLAY=":99"
           Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
-          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()
