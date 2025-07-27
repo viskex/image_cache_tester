@@ -57,6 +57,7 @@ jobs:
             BRANCH="main"
           fi
           echo "branch=${BRANCH}" >> ${GITHUB_OUTPUT}
+        shell: bash
       - name: Clone image cache tester library
         uses: actions/checkout@v4
         with:
