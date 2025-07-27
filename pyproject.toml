@@ -35,7 +35,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 dependencies = [
-    "nbvalx[notebooks,unit-tests]",
+    "nbvalx[notebooks,unit-tests] >= 0.4.1",
     "pillow",
     "pyvista[jupyter]"
 ]
