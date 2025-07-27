@@ -93,9 +93,14 @@ warn_unused_ignores = true
 module = [
     "dolfinx.*",
     "firedrake",
+    "ipyparallel",
     "viskex"
 ]
 ignore_missing_imports = true
+
+[tool.nbqa.process_cells]
+mypy = ["px"]
+ruff = ["px"]
 
 [tool.pytest.ini_options]
 

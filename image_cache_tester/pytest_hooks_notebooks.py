@@ -164,9 +164,17 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
         shutil.copy(screenshot_image_path, expected_image_path)
     if difference_image.getbbox() and not xfail:
         raise ImageVerificationError("Image cache verification failed for cell " + cell_id)'''
-        if np > 1:
+        # Determine if notebook uses ipyparallel
+        uses_ipyparallel = False
+        first_px_cell = -1
+        for (cell_index, cell) in enumerate(nb.cells):
+            if cell.cell_type == "code" and "%%px" in cell.source:
+                uses_ipyparallel = True
+                first_px_cell = cell_index
+                break
+        if uses_ipyparallel:
             # Add the cell after the cluster start one, so that %%px is available
-            image_paths_position = 1
+            image_paths_position = first_px_cell
             image_paths_code = "%%px --no-stream\n" + image_paths_code
         else:
             image_paths_position = 0
@@ -227,12 +235,16 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
         failures_summary_code = """if ImageVerificationError._failures > 0:
     raise ImageVerificationError(
         "There were " + str(ImageVerificationError._failures) + " image verification failures.")"""
-        if np > 1:
+        failures_summary_position = len(nb.cells)
+        if uses_ipyparallel:
             # Add the cell before the cluster stop one, so that %%px is still available
-            failures_summary_position = len(nb.cells) - 1
+            for (cell_index, cell) in enumerate(nb.cells):
+                if cell.cell_type == "code" and (
+                    "stop_cluster()" in cell.source or "stop_cluster_sync()" in cell.source
+                ):
+                    failures_summary_position = cell_index
+                    break
             failures_summary_code = "%%px --no-stream\n" + failures_summary_code
-        else:
-            failures_summary_position = len(nb.cells)
         failures_summary_cell = nbformat.v4.new_code_cell(failures_summary_code)  # type: ignore[no-untyped-call]
         failures_summary_cell.id = "failures_summary"
         nb.cells.insert(failures_summary_position, failures_summary_cell)
