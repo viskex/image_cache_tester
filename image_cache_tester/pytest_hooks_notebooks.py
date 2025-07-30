@@ -186,25 +186,32 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
             if (
                 cell.cell_type == "code"
                     and
-                any(f"viskex.{plotter}.plot" in cell.source for plotter in [
-                    "DolfinxPlotter", "FiredrakePlotter", "PyvistaPlotter",
-                    "dolfinx", "firedrake"
-                ])
+                (
+                    any(f"viskex.{plotter}.plot" in cell.source for plotter in [
+                        "DolfinxPlotter", "FiredrakePlotter", "PyvistaPlotter",
+                        "dolfinx", "firedrake",
+                    ]) or ".show(" in cell.source
+                )
             ):
                 lines = cell.source.splitlines()
                 cell_id = cell.id.replace("-", "_")
-                # Allow cell to fail if refreshing image cache
-                if refresh_image_cache and "PYTEST_XFAIL" not in cell.source:
+                # Determine if the cell is showing the image
+                has_show = False
+                for (line_index, line) in enumerate(lines):
+                    if "viskex.dolfinx" in line or "viskex.firedrake" in line or ".show(" in line:
+                        has_show = True
+                        break
+                # Allow cell to fail if cell is showing an image and we are refreshing image cache
+                if has_show and refresh_image_cache and "PYTEST_XFAIL" not in cell.source:
                     xfail_line_index = 0
                     while lines[xfail_line_index].startswith("%"):
                         xfail_line_index += 1
                     lines.insert(xfail_line_index, "# PYTEST_XFAIL: allow cell failure while refreshing image cache")
                 # Need to change the code to ensure that the plotter is fetched as a return variable
-                plotter_variable = ""
-                indentation_length = -1
+                plotter_variables = []
+                indentation_lengths = []
                 for (line_index, line) in enumerate(lines):
                     if "viskex." in line and ".plot" in line:
-                        assert plotter_variable == "", "Expecting one plot per cell"
                         indentation_length = len(line) - len(line.lstrip())
                         if line[indentation_length:].startswith("viskex."):
                             # The plotter is returned but not stored in a local variable, so we need to add it
@@ -216,6 +223,9 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
                             assert "=" in  line[:first_viskex_occurrence]
                             plotter_variable, _ = line.split("=", 1)
                             plotter_variable = plotter_variable.strip()
+                        # Append to plotter variable and indentation lengths
+                        plotter_variables.append(plotter_variable)
+                        indentation_lengths.append(indentation_length)
                         # Do not automatically show plotter
                         if "viskex.dolfinx" in line:
                             line = line.replace("viskex.dolfinx", "viskex.DolfinxPlotter")
@@ -223,14 +233,27 @@ def verify_plotter_image(plotter: pyvista.Plotter, cell_id: str, refresh_image_c
                             line = line.replace("viskex.firedrake", "viskex.FiredrakePlotter")
                         # Replace in cell code
                         lines[line_index] = line
-                assert plotter_variable != ""
-                assert indentation_length >= 0
-                # Add call to verify_image
-                indentation = " " * indentation_length
-                verify_image_code = f"""{indentation}verify_plotter_image(
+                    elif ".show" in line:
+                        indentation_length = len(line) - len(line.lstrip())
+                        plotter_variable, show = line.split(".", 1)
+                        assert show.startswith("show")
+                        plotter_variable = plotter_variable.strip()
+                        # Append to plotter variable and indentation lengths
+                        plotter_variables.append(plotter_variable)
+                        indentation_lengths.append(indentation_length)
+                assert len(plotter_variables) > 0
+                assert len(indentation_lengths) > 0
+                assert all(plotter_variable == plotter_variables[0] for plotter_variable in plotter_variables)
+                assert all(indentation_length == indentation_lengths[0] for indentation_length in indentation_lengths)
+                plotter_variable = plotter_variables[0]
+                indentation_length = indentation_lengths[0]
+                # Add call to verify_image if the cell is showing the image
+                if has_show:
+                    indentation = " " * indentation_length
+                    verify_image_code = f"""{indentation}verify_plotter_image(
 {indentation}    {plotter_variable}, "{cell_id}", {refresh_image_cache}, {"PYTEST_XFAIL" in cell.source})"""
-                lines.append(verify_image_code)
-                cell.source = "\n".join(lines)
+                    lines.append(verify_image_code)
+                    cell.source = "\n".join(lines)
         # Add a final summary of how many image verification failures there were
         failures_summary_code = """if ImageVerificationError._failures > 0:
     raise ImageVerificationError(
