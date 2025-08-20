@@ -34,9 +34,9 @@ def compare_images(
     :
         A tuple containing three images in pillow format: plotter screenshot, expected screenshot and their difference.
     """
-    plotter.show(auto_close=False)  # type: ignore[no-untyped-call]
-    plotter.screenshot(plotter_screenshot)  # type: ignore[no-untyped-call]
-    plotter.close()  # type: ignore[no-untyped-call]
+    plotter.show(auto_close=False)
+    plotter.screenshot(plotter_screenshot)
+    plotter.close()
     return _compare_images(plotter_screenshot, expected_screenshot, verbose)
 
 

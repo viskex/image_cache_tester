@@ -118,7 +118,7 @@ def test_compare_images_pyvista_success(image_cache: str, check_monitor_resoluti
     assert os.path.exists(expected_image_path)
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
-        plotter = pyvista.Plotter(off_screen=True)  # type: ignore[no-untyped-call]
+        plotter = pyvista.Plotter(off_screen=True)
         plotter.add_mesh(pyvista.Sphere(start_phi=0, end_phi=90))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
@@ -139,7 +139,7 @@ def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resoluti
     assert os.path.exists(expected_difference_image_path)
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
-        plotter = pyvista.Plotter(off_screen=True)  # type: ignore[no-untyped-call]
+        plotter = pyvista.Plotter(off_screen=True)
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
