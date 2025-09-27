@@ -29,7 +29,7 @@ def test_compare_images_single_pixel_success(image_cache: str) -> None:
         actual_image.save(actual_image_path)
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
-            actual_image_copy, expected_image, difference_image = image_cache_tester.compare_images._compare_images(
+            actual_image_copy, _expected_image, difference_image = image_cache_tester.compare_images._compare_images(
                 actual_image_path, expected_image_path, True)
         assert np.array_equal(np.asarray(actual_image_copy), np.asarray(actual_image))
         assert difference_image.getbbox() is None
@@ -48,7 +48,7 @@ def test_compare_images_single_pixel_failure(image_cache: str) -> None:
         actual_image.save(actual_image_path)
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
-            actual_image_copy, expected_image, difference_image = image_cache_tester.compare_images._compare_images(
+            actual_image_copy, _expected_image, difference_image = image_cache_tester.compare_images._compare_images(
                 actual_image_path, expected_image_path, True)
         assert np.array_equal(np.asarray(actual_image_copy), np.asarray(actual_image))
         assert difference_image.getbbox() == (0, 0, 2, 2)
@@ -143,7 +143,7 @@ def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resoluti
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
-            plotter_screenshot, expected_image, difference_image = image_cache_tester.compare_images.compare_images(
+            _plotter_screenshot, _expected_image, difference_image = image_cache_tester.compare_images.compare_images(
                 plotter, plotter_screenshot_path, expected_image_path, True)
         assert np.array_equal(
             np.asarray(difference_image), np.asarray(PIL.Image.open(expected_difference_image_path).convert("RGB")))
