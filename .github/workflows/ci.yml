@@ -14,7 +14,7 @@ on:
 jobs:
   test_library:
     runs-on: ubuntu-latest
-    container: debian:testing
+    container: debian:unstable
     steps:
       - name: Install git
         run: |
@@ -29,7 +29,7 @@ jobs:
       - name: Install non-pip dependencies of the image cache tester library
         run: |
           export DEBIAN_FRONTEND="noninteractive"
-          apt install -y -qq python3-mpi4py python3-pip xvfb
+          apt install -y -qq libosmesa6-dev python3-mpi4py python3-pip
           rm /usr/lib/python3.*/EXTERNALLY-MANAGED
       - name: Install the image cache tester library
         run: |
@@ -56,8 +56,6 @@ jobs:
           cd docs && python3 -m sphinx -W -b html . build/html
       - name: Run unit tests
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           COVERAGE_FILE=.coverage_unit python3 -m coverage run --source=image_cache_tester -m pytest tests/unit
       - name: Run ruff on notebooks test files
         run: |
@@ -74,8 +72,6 @@ jobs:
           pattern: "**/*.ipynb"
       - name: Run basic notebooks tests
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           COVERAGE_FILE=.coverage_notebooks_basic python3 -m coverage run --source=image_cache_tester -m pytest --coverage-run-allow tests/notebooks/basic
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()

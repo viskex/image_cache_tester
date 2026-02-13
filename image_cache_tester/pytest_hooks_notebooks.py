@@ -70,33 +70,11 @@ import IPython.display
 import mpi4py.MPI
 import numpy as np
 import pyvista
-import screeninfo
 
 import viskex
 import viskex.utils
 
 import image_cache_tester.compare_images  # isort: skip
-
-# Check that the monitor resolution is the same as the one which was used to generate pyvista images.
-max_retries = 5
-for attempt in range(max_retries):
-    try:
-        monitors = screeninfo.get_monitors()
-    except screeninfo.ScreenInfoError as e:
-        if attempt < max_retries - 1:
-            time.sleep(1)
-        else:
-            raise e
-    else:
-        break
-if len(monitors) == 0:  # pragma: no cover
-    raise RuntimeError("No monitors found")
-elif len(monitors) > 1:  # pragma: no cover
-    raise RuntimeError("Too many monitors found")
-monitor = monitors[0]
-if monitor.width != 1024 or monitor.height != 768:  # pragma: no cover
-    raise RuntimeError(
-        f"Wrong monitor resolution: expected 1024x768, got " + str(monitor.width) + "x" + str(monitor.height))
 
 # Check that the pyvista jupyter backend is compatible with cache generation. Note that this
 # cannot be done in the sessionstart code because that would force an import of viskex

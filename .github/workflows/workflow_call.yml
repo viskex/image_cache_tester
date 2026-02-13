@@ -68,7 +68,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND="noninteractive"
           apt update -y -q
-          apt install -y -qq xvfb
+          apt install -y -qq libosmesa6-dev
           if [[ "${{ matrix.backend }}" == "dolfinx"* ]]; then
             . /usr/local/bin/dolfinx-${{ matrix.petsc_arch }}-mode
             echo "PETSC_ARCH=$PETSC_ARCH" >> $GITHUB_ENV
@@ -123,32 +123,24 @@ jobs:
       - name: Verify images in notebooks (serial, static pyvista backend)
         id: verify_images_serial_static
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (serial, html pyvista backend)
         id: verify_images_serial_html
         if: success() || (failure() && steps.verify_images_serial_static.outcome == 'failure')
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, static pyvista backend)
         id: verify_images_parallel_static
         if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure'))
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, html pyvista backend)
         id: verify_images_parallel_html
         if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' || steps.verify_images_parallel_static.outcome == 'failure'))
         run: |
-          export DISPLAY=":99"
-          Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
           VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Upload notebooks logs as an artifact in case of failure

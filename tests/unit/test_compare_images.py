@@ -112,13 +112,13 @@ def test_compare_images_different_size(image_cache: str) -> None:
         stdout_buffer.close()
 
 
-def test_compare_images_pyvista_success(image_cache: str, check_monitor_resolution: bool) -> None:
+def test_compare_images_pyvista_success(image_cache: str) -> None:
     """Test that two images representing half a sphere are the same."""
     expected_image_path = os.path.join(image_cache, "test_compare_images_pyvista_success.png")
     assert os.path.exists(expected_image_path)
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
-        plotter = pyvista.Plotter(off_screen=True)
+        plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
         plotter.add_mesh(pyvista.Sphere(start_phi=0, end_phi=90))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
@@ -130,7 +130,7 @@ def test_compare_images_pyvista_success(image_cache: str, check_monitor_resoluti
         stdout_buffer.close()
 
 
-def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resolution: bool) -> None:
+def test_compare_images_pyvista_failure(image_cache: str) -> None:
     """Test that two images representing different halves of a sphere are different."""
     expected_image_path = os.path.join(image_cache, "test_compare_images_pyvista_failure.png")
     assert os.path.exists(expected_image_path)
@@ -139,7 +139,7 @@ def test_compare_images_pyvista_failure(image_cache: str, check_monitor_resoluti
     assert os.path.exists(expected_difference_image_path)
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
-        plotter = pyvista.Plotter(off_screen=True)
+        plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
