@@ -119,8 +119,8 @@ def test_compare_images_pyvista_success(image_cache: str) -> None:
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
         plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
-        assert plotter.ren_win.GetClassName() == "vtkOSOpenGLRenderWindow", (
-            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow ?")
+        assert plotter.ren_win.GetClassName() == "vtkEGLRenderWindow", (
+            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkEGLRenderWindow ?")
         plotter.add_mesh(pyvista.Sphere(start_phi=0, end_phi=90))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
@@ -143,8 +143,8 @@ def test_compare_images_pyvista_failure(image_cache: str) -> None:
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
         plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
-        assert plotter.ren_win.GetClassName() == "vtkOSOpenGLRenderWindow", (
-            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow ?")
+        assert plotter.ren_win.GetClassName() == "vtkEGLRenderWindow", (
+            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkEGLRenderWindow ?")
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
