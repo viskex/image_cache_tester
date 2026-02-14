@@ -119,11 +119,14 @@ def test_compare_images_pyvista_success(image_cache: str) -> None:
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
         plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
+        assert plotter.ren_win.GetClassName() == "vtkOSOpenGLRenderWindow", (
+            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow ?")
         plotter.add_mesh(pyvista.Sphere(start_phi=0, end_phi=90))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
             plotter_screenshot, expected_image, difference_image = image_cache_tester.compare_images.compare_images(
-                plotter, plotter_screenshot_path, expected_image_path, True)
+                plotter, plotter_screenshot_path, expected_image_path, True,
+                {"expected_image": False})
         assert np.array_equal(np.asarray(plotter_screenshot), np.asarray(expected_image))
         assert difference_image.getbbox() is None
         assert stdout_buffer.getvalue() == ""
@@ -140,11 +143,14 @@ def test_compare_images_pyvista_failure(image_cache: str) -> None:
     with tempfile.NamedTemporaryFile(suffix=".png") as plotter_screenshot_file:
         plotter_screenshot_path = plotter_screenshot_file.name
         plotter = pyvista.Plotter(off_screen=True, window_size=[1024, 768])
+        assert plotter.ren_win.GetClassName() == "vtkOSOpenGLRenderWindow", (
+            "Did you forget to export VTK_DEFAULT_OPENGL_WINDOW=vtkOSOpenGLRenderWindow ?")
         plotter.add_mesh(pyvista.Sphere(start_phi=90, end_phi=180))
         stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(stdout_buffer):
             _plotter_screenshot, _expected_image, difference_image = image_cache_tester.compare_images.compare_images(
-                plotter, plotter_screenshot_path, expected_image_path, True)
+                plotter, plotter_screenshot_path, expected_image_path, True,
+                {"difference_image": False})
         assert np.array_equal(
             np.asarray(difference_image), np.asarray(PIL.Image.open(expected_difference_image_path).convert("RGB")))
         assert difference_image.getbbox() == (248, 160, 775, 653)
