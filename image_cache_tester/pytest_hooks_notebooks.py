@@ -71,8 +71,7 @@ import mpi4py.MPI
 import numpy as np
 import pyvista
 
-import viskex
-import viskex.utils
+import viskex.utils.dtype
 
 import image_cache_tester.compare_images  # isort: skip
 
@@ -93,7 +92,7 @@ def _image_path_generator(directory: str, cell_id: str, comm_size: int, comm_ran
     assert ipynb_name.endswith(".ipynb")
     ipynb_name = ipynb_name[:-6]  # drop extension
     ipynb_dir = "{nb_path.parent}"
-    if np.issubdtype(viskex.utils.ScalarType, np.complexfloating):
+    if np.issubdtype(viskex.utils.dtype.ScalarType, np.complexfloating):
         output_scalar_type = "complex"
     else:
         output_scalar_type = "real"
