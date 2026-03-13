@@ -52,7 +52,7 @@ jobs:
         id: image_cache_tester_library_branch
         run: |
           if [[ "${{ github.repository }}" == "viskex/image_cache_tester" ]]; then
-            BRANCH=${GITHUB_REF##*/}
+            BRANCH=${GITHUB_REF#refs/heads/}
           else
             BRANCH="main"
           fi
