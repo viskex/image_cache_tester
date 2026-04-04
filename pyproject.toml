@@ -52,6 +52,9 @@ backend-dolfinx = [
 backend-firedrake = [
     "firedrake"
 ]
+bin = [
+    "ImageHash"
+]
 docs = [
     "sphinx"
 ]

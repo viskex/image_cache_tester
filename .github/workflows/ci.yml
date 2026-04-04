@@ -33,7 +33,7 @@ jobs:
           rm /usr/lib/python3.*/EXTERNALLY-MANAGED
       - name: Install the image cache tester library
         run: |
-          python3 -m pip install .[docs,lint,tests]
+          python3 -m pip install .[bin,docs,lint,tests]
       - name: Clean build files
         run: |
           git clean -xdf
