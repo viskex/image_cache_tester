@@ -61,7 +61,7 @@ jobs:
           echo "branch=${BRANCH}" >> ${GITHUB_OUTPUT}
         shell: bash
       - name: Clone image cache tester library
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           repository: viskex/image_cache_tester
           ref: ${{ steps.image_cache_tester_library_branch.outputs.branch }}
@@ -93,7 +93,7 @@ jobs:
           rm -rf _image_cache_tester_library
         shell: bash
       - name: Clone notebook repository on notebook branch
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           repository: "${{ inputs.notebook_repository }}"
           ref: "${{ inputs.notebook_branch }}"
@@ -102,7 +102,7 @@ jobs:
         run: |
           git config --global --add safe.directory _notebook_repository/${{ inputs.notebook_directory }}/.image_cache
       - name: Clone notebook repository on image cache branch
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
           repository: "${{ inputs.notebook_repository }}"
           token: "${{ secrets.REPO_ACCESS_TOKEN || github.token }}"
