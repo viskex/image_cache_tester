@@ -70,7 +70,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND="noninteractive"
           apt update -y -q
-          apt install -y -qq libegl1 libgl1-mesa-dri
+          apt install -y -qq libosmesa6
           if [[ "${{ matrix.backend }}" == "dolfinx"* ]]; then
             . /usr/local/bin/dolfinx-${{ matrix.petsc_arch }}-mode
             echo "PETSC_ARCH=$PETSC_ARCH" >> $GITHUB_ENV
@@ -125,25 +125,25 @@ jobs:
       - name: Verify images in notebooks (serial, static pyvista backend)
         id: verify_images_serial_static
         run: |
-          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+          VTK_DEFAULT_OPENGL_WINDOW="vtkOSOpenGLRenderWindow" VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (serial, html pyvista backend)
         id: verify_images_serial_html
         if: success() || (failure() && steps.verify_images_serial_static.outcome == 'failure')
         run: |
-          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
+          VTK_DEFAULT_OPENGL_WINDOW="vtkOSOpenGLRenderWindow" VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, static pyvista backend)
         id: verify_images_parallel_static
         if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure'))
         run: |
-          VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+          VTK_DEFAULT_OPENGL_WINDOW="vtkOSOpenGLRenderWindow" VISKEX_PYVISTA_BACKEND="static" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Verify images in notebooks (parallel, html pyvista backend)
         id: verify_images_parallel_html
         if: success() || (failure() && (steps.verify_images_serial_static.outcome == 'failure' || steps.verify_images_serial_html.outcome == 'failure' || steps.verify_images_parallel_static.outcome == 'failure'))
         run: |
-          VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
+          VTK_DEFAULT_OPENGL_WINDOW="vtkOSOpenGLRenderWindow" VISKEX_PYVISTA_BACKEND="html" python3 -m pytest --nbval-cell-timeout=60 --verify-images --refresh-image-cache --np=2 ${{ inputs.notebook_directory }}
         working-directory: _notebook_repository
       - name: Upload notebooks logs as an artifact in case of failure
         if: failure() || cancelled()
